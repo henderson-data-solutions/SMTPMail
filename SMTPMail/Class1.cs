@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Security.Principal;
 
 namespace SMTPMail
 {
@@ -61,6 +62,7 @@ namespace SMTPMail
         public static Int32 Send(string server, int port, string username, string password, int usessl, string from, string recipients, string subject, string body, string attachments)
         {
             Int32 status = 0;
+            string userID = WindowsIdentity.GetCurrent().Name;
             SmtpClient client = new SmtpClient(server, port);
             client.DeliveryMethod = SmtpDeliveryMethod.Network;
             if (String.IsNullOrEmpty(username))
@@ -105,9 +107,12 @@ namespace SMTPMail
                 mail.Subject = subject;
                 mail.Body = body;
                 client.Send(mail);
-                status = 0;            }
+                status = 0;
+            }
             catch (Exception ex)
             {
+                string logmsg = "User: " + userID + "\n" + ex.Message + "\n" + ex.StackTrace;
+                System.IO.File.WriteAllText(@"C:\Kwekel\Logs\SMTPError.log", logmsg);
                 status = -1;
             }
 
